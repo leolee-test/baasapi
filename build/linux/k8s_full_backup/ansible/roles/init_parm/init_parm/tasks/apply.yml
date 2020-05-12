@@ -1,0 +1,17 @@
+---
+- name: Setup variables
+  set_fact:
+    fabricpath: "{{ pjroot }}/vars/namespaces/{{ env }}"
+
+- name: Make sure that working directory exists
+  file:
+    path: "{{ pjroot }}/vars/namespaces/{{ env }}/run"
+    state: "directory"
+    mode: 0775
+
+- name: Create k8s service deployment files
+  template:
+    src: "{{ playbook_dir }}/../init_parm/init_parm/templates/init_parm.j2"
+    dest: "{{ pjroot }}/vars/namespaces/{{ env }}/{{ env }}.yml"
+                                                           
+

@@ -1,0 +1,43 @@
+---
+- name: Create deployment files for marbles pods and services 
+  template:
+    src: "{{ playbook_dir }}/../operate_k8s/services/templates/{{ item }}.j2"  
+    dest: "{{ pjrun }}/{{ item }}.yaml"
+  with_items:
+    - marbles-pod
+    - marbles-services
+
+# Create the k8s services so that node addresses become available
+#- name: Create k8s service deployment files
+#  template:
+#    src: "{{ playbook_dir }}/../operate_k8s/services/templates/explorer-db-services.j2"
+#    dest: "{{ pjrun }}/explorer-db-services.yaml"
+
+# Create the k8s services so that node addresses become available
+#- name: Create k8s service deployment files
+#  template:
+#    src: "{{ playbook_dir }}/../operate_k8s/services/templates/explorer-services.j2"
+#    dest: "{{ pjrun }}/explorer-services.yaml"
+
+#- name: Start fabric sdk services
+#  command: >-
+#    kubectl --kubeconfig kubeconfig apply -f {{ pjrun }}/explorer-services.yaml
+#  args:
+#    chdir: "{{ playbook_dir }}/../../vars/"
+#  tags: "fabricexplorerup"
+
+#- name: Start fabric sdk pods
+#  command: "kubectl --kubeconfig kubeconfig apply -f {{ pjrun }}/explorer-pod.yaml"
+#  args:
+#    chdir: "{{ playbook_dir }}/../../vars/"
+#  tags: "fabricexplorerup"
+- name: Start fabric marbles app and services
+  command: >-
+    kubectl --kubeconfig kubeconfig apply -f {{ pjrun }}/{{ item }}.yaml
+  args:
+    chdir: "{{ playbook_dir }}/../../vars/"
+  with_items:
+    - marbles-pod
+    - marbles-services
+  tags: "fabricmarblesup"
+

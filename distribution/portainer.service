@@ -1,0 +1,17 @@
+[Unit]
+Description=BaaSapi.io management ui
+After=docker.service
+Wants=docker.service
+Wants=docker-latest.service
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=3
+Environment=ASSETS=/usr/share/baasapi
+Environment=DBFILES=/var/lib/baasapi
+EnvironmentFile=-/etc/sysconfig/%p
+ExecStart=/usr/sbin/baasapi -a $ASSETS -d $DBFILES
+
+[Install]
+WantedBy=multi-user.target

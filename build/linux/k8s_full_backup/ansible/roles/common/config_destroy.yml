@@ -1,0 +1,9 @@
+---
+- name: Create a zip file of all certificates
+  archive:
+    path: "{{ pjroot }}/vars/namespaces/{{ env }}"
+    dest: "{{ pjroot }}/vars/namespaces/{{ env }}.tgz" 
+- name: Make sure that working directory is clean
+  file:
+    path: "{{ pjroot }}/vars/namespaces/{{ env }}"
+    state: "absent"

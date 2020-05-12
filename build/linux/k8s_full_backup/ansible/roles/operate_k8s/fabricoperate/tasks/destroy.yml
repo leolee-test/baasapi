@@ -1,0 +1,7 @@
+---
+- name: Reuse common code
+  include_tasks: "{{ playbook_dir }}/../common/config_apply.yml"
+
+- name: Remove run directory
+  include_tasks: "{{ playbook_dir }}/../common/config_destroy.yml"
+

@@ -1,0 +1,47 @@
+---
+- name: Create deployment files for explorer pods and services 
+  template:
+    src: "{{ playbook_dir }}/../operate_k8s/services/templates/{{ item }}.j2"  
+    dest: "{{ pjrun }}/{{ item }}.yaml"
+  with_items:
+    - explorer-db-pod
+    - explorer-pod
+    - explorer-db-services
+    - explorer-services
+
+
+# Create the k8s services so that node addresses become available
+#- name: Create k8s service deployment files
+#  template:
+#    src: "{{ playbook_dir }}/../operate_k8s/services/templates/explorer-db-services.j2"
+#    dest: "{{ pjrun }}/explorer-db-services.yaml"
+
+# Create the k8s services so that node addresses become available
+#- name: Create k8s service deployment files
+#  template:
+#    src: "{{ playbook_dir }}/../operate_k8s/services/templates/explorer-services.j2"
+#    dest: "{{ pjrun }}/explorer-services.yaml"
+
+- name: Start fabric explorer db and services
+  command: >-
+    kubectl --kubeconfig kubeconfig apply -f {{ pjrun }}/{{ item }}.yaml
+  args:
+    chdir: "{{ playbook_dir }}/../../vars/"
+  with_items:
+    - explorer-db-pod
+    - explorer-db-services
+    - explorer-services  
+  tags: "fabricexplorerdbup"
+
+- name: wait 5 sec for explorer db to come up
+  shell: >-
+    /bin/sleep 5s
+  tags: "wait"
+
+- name: Start fabric sdk pods
+  command: >-
+    kubectl --kubeconfig kubeconfig apply -f {{ pjrun }}/explorer-pod.yaml
+  args:
+    chdir: "{{ playbook_dir }}/../../vars/"
+  tags: "fabricexplorerup"
+

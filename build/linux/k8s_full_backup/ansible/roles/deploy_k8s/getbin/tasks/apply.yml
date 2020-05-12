@@ -1,0 +1,23 @@
+---
+- name: Setup variables
+  set_fact:
+    fabricpath: "{{ pjroot }}/vars/namespaces/{{ env }}"
+
+- name: Make sure that working directory exists
+  file:
+    path: "{{ pjroot }}/vars/namespaces/{{ env }}/run"
+    state: "directory"
+    mode: 0775
+
+- stat:
+    path: "{{ pjroot }}/vars/bin_{{ fabric.platform }}_{{ fabric.version }}/bin/cryptogen"
+  register: binexists
+
+- name: Download fabric binaries
+  unarchive:
+    src: "{{ fabric.repo.bin }}"
+    dest: "{{ pjroot }}/vars/bin_{{ fabric.platform }}_{{ fabric.version }}"
+    exclude: ["config"]
+    remote_src: yes
+  when: fabric.repo.bin|length > 0 and binexists.stat.exists == false
+  tags: "downloadbin"

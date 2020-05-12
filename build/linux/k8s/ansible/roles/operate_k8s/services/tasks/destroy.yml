@@ -1,0 +1,20 @@
+---
+- name: Stop fabric pod and chaincode endpoint daemon set
+  command: >-
+    kubectl --kubeconfig kubeconfig delete -f {{ pjrun }}/{{ item }}
+  args:
+    chdir: "{{ playbook_dir }}/../../vars/"
+  with_items:
+    - "sdk-services.yaml"
+    - "sdk-pod.yaml"
+  ignore_errors: yes
+  tags: "fabricsdkdown"
+
+- name: stop insurance
+  include_tasks: "{{ playbook_dir }}/../operate_k8s/services/tasks/insurance_destroy.yml"   
+
+- name: stop marbles
+  include_tasks: "{{ playbook_dir }}/../operate_k8s/services/tasks/marbles_destroy.yml"  
+
+- name: stop explorer
+  include_tasks: "{{ playbook_dir }}/../operate_k8s/services/tasks/explorer_destroy.yml"  

@@ -1,0 +1,14 @@
+---
+- name: Reuse common code for connection profile
+  include_tasks: "{{ playbook_dir }}/../common/connection_apply.yml"
+
+- name: Get sdk pod and add hosts
+  include_tasks: "{{ playbook_dir }}/fabricoperate/tasks/get_sdk_pod.yml"
+
+- include_tasks: "{{ playbook_dir }}/certsetup/tasks/connection_apply.yml"
+  #hosts: '{{ sdk_pod.stdout }}'
+  when: fabric.generate_certs|default(true) == true
+  
+- name: Update the connection profile 
+  include_tasks: "{{ playbook_dir }}/../operate_k8s/services/tasks/connection_apply.yml"   
+

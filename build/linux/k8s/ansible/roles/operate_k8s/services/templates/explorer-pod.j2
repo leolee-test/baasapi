@@ -1,0 +1,82 @@
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: fabricexplorer
+  namespace: "{{ namespace }}"
+  labels:
+    k8s-app: fabricexplorer
+    type: explorer
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        k8s-app: fabricexplorer
+        type: explorer
+    spec:
+      volumes:
+        - name: varrun
+          hostPath:
+            path: /var/run
+        - name: task-pv-storage
+          persistentVolumeClaim:
+            claimName: fabriccerts
+            #- name: config
+            #hostPath:
+            #path: /config.json
+            #type: FileOrCreate
+            #- name: connectionprofile
+            #hostPath:
+            #path: /connection-profile
+            #- name: crypto
+            #hostPath:
+            #path: /crypto
+            #- name: walletstore
+            #hostPath:
+            #path: /walletstore
+      containers:
+        - name: fabricexplorer
+          image: hyperledger/explorer:0.3.9.4
+          #image: testexp:v1
+          imagePullPolicy: IfNotPresent
+          ports:
+          - containerPort: 8080
+          env:
+            - name: PORT
+              value: "8080"
+            - name: DATABASE_HOST
+              value: "fabricexplorer-db"
+            - name: DATABASE_USERNAME
+              value: "hppoc"
+            - name: DATABASE_PASSWD
+              value: "password"
+            - name: DISCOVERY_AS_LOCALHOST
+              value: "false"
+            - name: CORE_VM_ENDPOINT
+              value: "unix:///host/var/run/docker.sock"
+            - name: "FABRIC_LOGGING_SPEC"
+              value: "DEBUG"
+          volumeMounts:
+            - mountPath: /host/var/run
+              name: varrun
+              #- mountPath: /fabric
+              #name: task-pv-storage
+            - mountPath: /fabric
+              name: task-pv-storage
+              #subPath: bcexplorer
+              #- mountPath: /opt/explorer/app/platform/fabric/config.json
+              #name: config
+              #subPath: bcexplorer
+            - mountPath: /opt/explorer/app/platform/fabric/connection-profile
+              name: task-pv-storage
+              subPath: connection-profile
+              #name: connectionprofile
+            - mountPath: /tmp/crypto
+              name: task-pv-storage
+              subPath: crypto
+              #name: crypto
+            - mountPath: /opt/wallet
+              name: task-pv-storage
+              subPath: walletstore
+              #name: walletstore

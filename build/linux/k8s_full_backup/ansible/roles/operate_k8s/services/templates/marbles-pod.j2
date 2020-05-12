@@ -1,0 +1,46 @@
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: marbles
+  namespace: "{{ namespace }}"
+  labels:
+    k8s-app: marbles
+    type: marbles
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        k8s-app: marbles
+        type: marbles
+    spec:
+      volumes:
+        - name: varrun
+          hostPath:
+            path: /var/run
+        - name: task-pv-storage
+          persistentVolumeClaim:
+            claimName: fabriccerts
+      containers:
+        - name: marbles
+          image: marbles:v4
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            privileged: true
+          workingDir: /app
+          ports:
+          - containerPort: 3001
+          env:
+            - name: PORT
+              value: "3001"
+            - name: CORE_VM_ENDPOINT
+              value: "unix:///host/var/run/docker.sock"
+          volumeMounts:
+            - mountPath: /host/var/run
+              name: varrun
+            - mountPath: /fabric
+              name: task-pv-storage
+            - mountPath: /app/config
+              name: task-pv-storage
+              subPath: marbles_config

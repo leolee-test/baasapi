@@ -1,0 +1,10 @@
+---
+- name: Reuse common code
+  include_tasks: "{{ playbook_dir }}/../common/config_apply.yml"
+
+- name: Remove run directory
+  include_tasks: "{{ playbook_dir }}/../common/config_destroy.yml"
+
+- name: Remove deployment files for sdk and services
+  include_tasks: "{{ playbook_dir }}/../operate_k8s/services/tasks/destroy.yml"  
+

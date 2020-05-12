@@ -1,0 +1,15 @@
+---
+- name: Stop fabric explorer pod and services
+  command: >-
+    kubectl --kubeconfig kubeconfig delete -f {{ pjrun }}/{{ item }}
+  args:
+    chdir: "{{ playbook_dir }}/../../vars/"
+  with_items:
+    - "explorer-pod.yaml"
+    - "explorer-services.yaml"
+    - "explorer-db-pod.yaml"
+    - "explorer-db-services.yaml"
+  ignore_errors: yes
+  tags: "fabricexplorerdown"
+
+

@@ -1,0 +1,36 @@
+---
+- name: Reuse common code for connection profile
+  include_tasks: "{{ playbook_dir }}/../common/connection_apply.yml"
+
+- name: Get sdk pod and add hosts
+  include_tasks: "{{ playbook_dir }}/fabricoperate/tasks/get_sdk_pod.yml"
+
+- include_tasks: "{{ playbook_dir }}/certsetup/tasks/explorer_apply.yml"
+  #hosts: '{{ sdk_pod.stdout }}'
+  when: fabric.generate_certs|default(true) == true
+  
+- name: Update the connection profile 
+  include_tasks: "{{ playbook_dir }}/../operate_k8s/services/tasks/connection_apply.yml"   
+
+- include_tasks: "{{ playbook_dir }}/../common/publicports.yml"
+  when: fabric.k8s.exposeserviceport == True
+
+- name: Create peer org member string
+  set_fact:
+    orgmembers: >-
+      {{ peerorgs|map('regex_replace','(.*)',"'\g<1>.member'")|list|join(',') }}
+
+- name: Create deployment files for sdk and services
+  include_tasks: "{{ playbook_dir }}/../operate_k8s/services/tasks/explorer_apply.yml"   
+
+#- name: Wait for all explorer pods to be ready
+#  command: >-
+#    kubectl --kubeconfig kubeconfig --namespace {{ namespace }}
+#    -o=custom-columns=STATUS:.status.phase
+#    get pods -l type=explorer --no-headers --field-selector=status.phase=Running
+#  args:
+#    chdir: "{{ playbook_dir }}/../../vars/"
+#  register: podstatus
+#  until: podstatus.stdout_lines | length == 2 | length
+#  retries: 50
+#  delay: 3

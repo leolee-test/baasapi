@@ -1,0 +1,108 @@
+{
+  "name": "{{ item }}-network",
+  "x-type": "hlfv1",
+  "version": "1.0.0",
+  "client": {
+    "organization": "{{ item }}",
+    "connection": {
+      "timeout": {
+        "peer": { "endorser": "300", "eventHub": "300", "eventReg": "300"},
+        "orderer": "300"
+      }
+    }
+  },
+  "channels": {
+{% for channel in Allchannels %}
+    "{{ channel.CHLName }}": {
+      "orderers": [
+{% for orderer in allorderers %}
+        "{{ orderer.name }}"{{ '' if loop.last else ',' }}
+{% endfor %}
+      ],
+      "chaincodes": [
+                    "marbles:v4"
+      ],
+      "peers": {
+{% for peer in allpeers|selectattr('org', 'equalto', item)|list %}
+        "{{ peer.name }}": {
+          "endorsingPeer": true, "chaincodeQuery": true, "eventSource": true
+        }{{ '' if loop.last else ',' }}
+{% endfor %}
+      }
+    }{{ '' if loop.last else ',' }}
+{% endfor %}
+  },
+  "organizations": {
+    "{{ item }}": {
+      "mspid": "{{ item }}",
+      "peers": [
+{% for peer in allpeers|selectattr('org', 'equalto', item)|list %}
+        "{{ peer.name }}"{{ '' if loop.last else ',' }}
+{% endfor %}
+      ],
+      "certificateAuthorities": [
+{% for ca in allcas|selectattr('org', 'equalto', item)|list %}
+        "{{ ca.name }}"{{ '' if loop.last else ',' }}
+{% endfor %}
+      ],
+      "x-adminCert": {
+                      "path": "/fabric/keyfiles/{{ item }}/users/Admin@{{ item }}/msp/admincerts/Admin@{{ item }}-cert.pem"
+                    },
+      "x-adminKeyStore": {
+                      "path": "/fabric/keyfiles/{{ item }}/users/Admin@{{ item }}/msp/keystore/"
+                    } 
+    }
+  },
+  "orderers": {
+{% for orderer in allorderers %}
+    "{{ orderer.name }}": {
+      "url": "grpcs://{{ orderer.name }}:7050",
+      "grpcOptions": {
+        "ssl-target-name-override": "{{ orderer.name }}"
+      },
+      "tlsCACerts": {
+{% for pemstr in ordtlscapems|selectattr('org', 'equalto', orderer.org)|list %}
+        "pem": "{{ pemstr.pem }}"
+{% endfor %}
+      }
+    }{{ '' if loop.last else ',' }}
+{% endfor %}
+  },
+  "peers": {
+{% for peer in allpeers|selectattr('org', 'equalto', item)|list %}
+    "{{ peer.name }}": {
+      "url": "grpcs://{{ peer.name }}:7051",
+      "eventUrl": "grpcs://{{ peer.name }}:7053",
+      "grpcOptions": {
+        "ssl-target-name-override": "{{ peer.name }}"
+      },
+      "tlsCACerts": {
+{% for pemstr in tlscapems|selectattr('org', 'equalto', item)|list %}
+        "pem": "{{ pemstr.pem }}"
+{% endfor %}
+      }
+    }{{ '' if loop.last else ',' }}
+{% endfor %}
+  },
+  "certificateAuthorities": {
+{% for ca in allcas|selectattr('org', 'equalto', item)|list %}
+    "{{ ca.name }}": {
+      "url": "https://{{ca.name}}:7054",
+      "caName": "{{ ca.name }}",
+      "httpOptions": {"verify": false},
+      "registrar": [
+                    {
+                      "affiliation": "{{ item }}",
+                      "enrollId": "admin",
+                      "enrollSecret": "adminpw"
+                    }
+      ],
+      "tlsCACerts": {
+{% for pemstr in tlscapems|selectattr('org', 'equalto', item)|list %}
+        "pem": "{{ pemstr.pem }}"
+{% endfor %}
+      }
+    }{{ '' if loop.last else ',' }}
+{% endfor %}
+  }
+}

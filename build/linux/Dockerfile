@@ -1,0 +1,21 @@
+#FROM portainer/base
+#FROM alpine:latest 
+FROM ubuntu:18.04 
+RUN apt update && \
+    apt install -y software-properties-common && \
+    apt-add-repository ppa:ansible/ansible && \
+    apt update && \
+    apt install -y ansible curl bash && \ 
+    rm -rf /tmp/*       
+RUN curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.13.4/bin/linux/amd64/kubectl
+RUN chmod u+x kubectl && mv kubectl /bin/kubectl
+
+WORKDIR /
+VOLUME data
+EXPOSE 9000
+COPY dist /
+COPY build/linux/k8s/k8s.tar.gz  /tmp/k8s.tar.gz
+ADD build/linux/start.sh /         
+
+ENTRYPOINT ["/start.sh"]
+#ENTRYPOINT ["/baasapi"]

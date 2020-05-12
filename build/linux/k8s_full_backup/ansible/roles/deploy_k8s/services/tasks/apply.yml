@@ -1,0 +1,31 @@
+---
+- name: Create deployment files for sdk and services 
+  template:
+    src: "{{ playbook_dir }}/services/templates/{{ item }}.j2"  
+    dest: "{{ pjrun }}/{{ item }}.yaml"
+  with_items:
+    - sdk-pod
+    - sdk-services
+
+# Create the k8s services so that node addresses become available
+#- name: Create k8s service deployment files
+#  template:
+#    src: "{{ playbook_dir }}/../deploy_k8s/services/templates/sdk-services.j2"
+#    dest: "{{ pjrun }}/sdk-services.yaml"
+
+- name: Start fabric sdk services
+  command: >-
+    kubectl --kubeconfig kubeconfig apply -f {{ pjrun }}/{{ item }}.yaml
+  args:
+    chdir: "{{ playbook_dir }}/../../vars/"
+  with_items: 
+    - sdk-services
+    - sdk-pod
+  tags: "fabricsdkup"
+
+#- name: Start fabric sdk pods
+##  command: "kubectl --kubeconfig kubeconfig apply -f {{ pjrun }}/sdk-pod.yaml"
+#  args:
+##    chdir: "{{ playbook_dir }}/../../vars/"
+#  tags: "fabricsdkup"
+

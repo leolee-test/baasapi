@@ -1,0 +1,2 @@
+cloud ansible_host=127.0.0.1 ansible_python_interpreter=python
+sdk kubectl_pod=fabricsdk kubectl_namespace=admin-ivjbrsj440v6b ansible_kubectl_confg=/data/k8s/ansible/vars/kubeconfig ansible_connection=kubectl ansible_python_interpreter=python

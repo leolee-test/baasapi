@@ -1,0 +1,48 @@
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: fabricweb
+  namespace: "{{ namespace }}"
+  labels:
+    k8s-app: fabricweb
+    type: insurance
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        k8s-app: fabricweb
+        type: insurance
+    spec:
+      volumes:
+        - name: varrun
+          hostPath:
+            path: /var/run
+        - name: task-pv-storage
+          persistentVolumeClaim:
+            claimName: fabriccerts
+      containers:
+        - name: fabricweb
+          image: web:v2.1
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            privileged: true
+          workingDir: /app
+          ports:
+          - containerPort: 3000
+          env:
+            - name: PORT
+              value: "3000"
+            - name: DOCKER_SOCKET_PATH
+              value: "/host/var/run/docker.sock"
+            - name: "DOCKER_CCENV_IMAGE"
+              value: "hyperledger/fabric-ccenv:latest"
+          volumeMounts:
+            - mountPath: /host/var/run
+              name: varrun
+            - mountPath: /fabric
+              name: task-pv-storage
+            - mountPath: /app/www/blockchain
+              name: task-pv-storage
+              subPath: insurance_config

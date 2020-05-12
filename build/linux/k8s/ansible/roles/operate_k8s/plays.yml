@@ -1,0 +1,19 @@
+---
+#- name: get sdk pod name and add hosts
+#  hosts: cloud
+#  connection: local
+#  tasks:
+#    - include_tasks: "fabricoperate/tasks/get_sdk_pod.yml"
+#  tags: "getsdk"
+- name: operate fabric network
+  hosts: cloud
+  connection: local
+  gather_facts: no 
+  #  hosts: '{{ sdk_pod.stdout }}'
+  #  connection: kubectl
+  vars_files:
+    - "./../../vars/namespaces/{{ env }}/{{ env }}.yml"
+    - "./../../vars/resource.yml"
+  tasks:
+    - include_tasks: "fabricoperate/tasks/{{ mode }}.yml"
+  tags: "fabricoperate"

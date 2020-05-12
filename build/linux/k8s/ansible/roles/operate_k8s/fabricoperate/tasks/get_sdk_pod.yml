@@ -1,0 +1,16 @@
+---
+- name: Get the sdk Pod name.
+  command: >-
+    kubectl --kubeconfig kubeconfig --no-headers=true get pod -l k8s-app=fabricsdk{{ networkid }} -o custom-columns=:metadata.name -n {{ env }} 
+  args:
+    chdir: "{{ playbook_dir }}/../../vars/"
+  register: sdk_pod
+#- debug: 
+#    var: sdk_pod
+- name: Add the sdk Pod to the inventory
+  add_host:
+    name: '{{ sdk_pod.stdout }}'
+    ansible_kubectl_pod: '{{ sdk_pod.stdout }}'
+    ansible_kubectl_namespace: '{{ env }}'
+    ansible_kubectl_config: "{{ playbook_dir }}/../../vars/kubeconfig"   
+    ansible_connection: kubectl

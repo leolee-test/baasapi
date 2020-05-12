@@ -1,0 +1,43 @@
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: fabricexplorer-db
+  namespace: "{{ namespace }}"
+  labels:
+    k8s-app: fabricexplorer-db
+    type: explorer
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        k8s-app: fabricexplorer-db
+        type: explorer
+    spec:
+      volumes:
+        - name: varrun
+          hostPath:
+            path: /var/run
+        - name: task-pv-storage
+          persistentVolumeClaim:
+            claimName: fabriccerts
+      containers:
+        - name: fabricexplorer-db
+          image: hyperledger/explorer-db:0.3.9.4.baas
+          imagePullPolicy: IfNotPresent
+          ports:
+          - containerPort: 5432
+          env:
+            - name: DATABASE_DATABASE
+              value: "fabricexplorer"
+            - name: DATABASE_USERNAME
+              value: "hppoc"
+            - name: DATABASE_PASSWORD
+              value: "password"
+          volumeMounts:
+            - mountPath: /host/var/run
+              name: varrun
+            - mountPath: /var/lib/postgresql/data
+              name: task-pv-storage
+              subPath: explorer_db 

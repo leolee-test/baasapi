@@ -1,0 +1,80 @@
+{
+  "name": "{{ item }}-network",
+  "x-type": "hlfv1",
+  "version": "1.0.0",
+  "client": {
+    "tlsEnable": true,
+    "organization": "{{ item }}",
+    "adminUser": "admin",
+    "adminPassword": "adminpw",
+    "connection": {
+      "timeout": {
+        "peer": { "endorser": "300", "eventHub": "300", "eventReg": "300"},
+        "orderer": "300"
+      }
+    }
+  },
+  "channels": {
+{% for channel in Currchannels %}
+    "{{ channel.CHLName }}": {
+      "orderers": [
+{% for orderer in allorderers %}
+        "{{ orderer.name }}"{{ '' if loop.last else ',' }}
+{% endfor %}
+      ],
+      "connection": {
+              "timeout": {
+                      "peer": {
+                              "endorser": "6000",
+                              "eventHub": "6000",
+                              "eventReg": "6000"
+                      }
+              }
+      },
+      "peers": {
+{% for peer in allpeers %}
+        "{{ peer.name }}": {
+          "endorsingPeer": true, "chaincodeQuery": true, "eventSource": true
+        }{{ '' if loop.last else ',' }}
+{% endfor %}
+      }
+    }{{ '' if loop.last else ',' }}
+{% endfor %}
+  },
+  "organizations": {
+    "{{ item }}": {
+      "mspid": "{{ item }}",
+      "peers": [
+{% for peer in allpeers|selectattr('org', 'equalto', item)|list %}
+        "{{ peer.name }}"{{ '' if loop.last else ',' }}
+{% endfor %}
+      ],
+      "fullpath": true,
+      "adminPrivateKey": {
+              "path": "/fabric/keyfiles/{{ item }}/users/Admin@{{ item }}/msp/keystore/admin_private.key"
+      },
+      "signedCert": {
+              "path": "/fabric/keyfiles/{{ item }}/users/Admin@{{ item }}/msp/signcerts/Admin@{{ item }}-cert.pem"
+      },
+      "certificateAuthorities": [
+{% for ca in allcas|selectattr('org', 'equalto', item)|list %}
+        "{{ ca.name }}"{{ '' if loop.last else ',' }}
+{% endfor %}
+      ]
+    }
+  },
+  "peers": {
+{% for peer in allpeers|selectattr('org', 'equalto', item)|list %}
+    "{{ peer.name }}": {
+      "tlsCACerts": {
+             "path": "/fabric/keyfiles/{{ item }}/peers/{{ peer.name }}.{{ item }}/tls/ca.crt"
+      },
+      "url": "grpcs://{{ peer.name }}:7051",
+      "eventUrl": "grpcs://{{ peer.name }}:7053",
+      "grpcOptions": {
+        "ssl-target-name-override": "{{ peer.name }}"
+      }
+    }{{ '' if loop.last else ',' }}
+{% endfor %}
+  }
+}

@@ -1,0 +1,96 @@
+---
+#- debug:
+#    var: hostvars 
+- name: Create yaml connection profiles for network and channels 
+  template:
+    src: "{{ playbook_dir }}/priconn/templates/network.connyaml.j2"    
+    dest: "{{ fabricworkdir }}/keyfiles/connection.yml"  
+- name: Create yaml connection profiles for network and channels org
+  template: 
+    src: "{{ playbook_dir }}/priconn/templates/connyaml.j2"
+    dest: "{{ fabricworkdir }}/keyfiles/{{ item }}/connection.yml" 
+  with_items: "{{ peerorgs }}"  
+#- name: Ensure certificate directory exists 
+#  file:
+#    path: "{{ fabricworkdir }}/keyfiles/{{ item }}/connection-profile"  
+#    state: "directory"
+#  with_items: "{{ peerorgs }}"  
+#- name: Create yaml connection profiles for network and channels org for explorer
+#  template: 
+#    src: "{{ playbook_dir }}/priconn/templates/connection_explorer.j2"  
+#    dest: "{{ fabricworkdir }}/keyfiles/{{ item }}/connection-profile/first-network.json"  
+#  with_items: "{{ peerorgs }}"  
+#- name: Ensure marbles directory exists 
+#  file:
+#    path: "{{ fabricworkdir }}/keyfiles/{{ item }}/marbles_config"  
+#    state: "directory"
+#  with_items: "{{ peerorgs }}"  
+- name: Get the pem file for marbles tls
+  command: /usr/bin/awk 'NF {sub(/\r/, ""); printf "%s\\n",$0;}'  "{{ fabricworkdir }}/keyfiles/{{ item }}/tlsca/tlsca.{{ item }}-cert.pem" 
+  register: tlscapem 
+  args:
+    chdir: "{{ playbook_dir }}/../../vars/"
+  with_items: "{{ peerorgs }}" 
+- name: Ensure insurance web directory exists 
+  file:
+    path: "{{ fabricworkdir }}/insurance_config"  
+    state: "directory"
+- name: Get the pem file for marbles tls for orderer
+  command: /usr/bin/awk 'NF {sub(/\r/, ""); printf "%s\\n",$0;}'  "{{ fabricworkdir }}/keyfiles/{{ item }}/tlsca/tlsca.{{ item }}-cert.pem" 
+  register: ordtlscapem 
+  args:
+    chdir: "{{ playbook_dir }}/../../vars/"
+  with_items: "{{ ordererorgs }}" 
+#- debug:
+#    var: tlscapem.results 
+#- debug:
+#    var: ordtlscapem.results 
+- name: Initialize sets
+  set_fact:
+    tlscapems: "{{ [] }}"
+    ordcapems: "{{ [] }}"
+- set_fact:
+    tlscapems: |
+      {{ tlscapems | default([]) + [{'org':item.item,
+        'pem':item.stdout}] }}
+  with_items: "{{ tlscapem.results }}"
+- set_fact:
+    ordtlscapems: |
+      {{ ordtlscapems | default([]) + [{'org':item.item,
+        'pem':item.stdout}] }}
+  with_items: "{{ ordtlscapem.results }}"
+#- debug:
+#    var: hostvars 
+#- name: Create yaml connection profiles for network and channels org for marbles tls
+#  template: 
+#    src: "{{ playbook_dir }}/priconn/templates/marbles_tls.j2"  
+#    dest: "{{ fabricworkdir }}/keyfiles/{{ item }}/marbles_config/marbles_tls.json"  
+#  with_items: "{{ peerorgs }}"  
+#- name: Create yaml connection profiles for network and channels org for marbles connection tls
+#  template: 
+#    src: "{{ playbook_dir }}/priconn/templates/marbles_connection_profile_tls.j2"  
+#    dest: "{{ fabricworkdir }}/keyfiles/{{ item }}/marbles_config/connection_profile_tls.json"  
+#  with_items: "{{ peerorgs }}"  
+- name: Create deployment files for insurance web 
+  template:
+    src: "{{ playbook_dir }}/priconn/templates/insurance_web_www_blockchain/{{ item }}"  
+    dest: "{{ fabricworkdir }}/insurance_config/{{ item }}" 
+  with_items:
+    - enrollAdmin.js
+    - insurancePeer.js
+    - invoke.js
+    - policePeer.js
+    - registerUser.js
+    - repairShopPeer.js
+    - setup.js
+    - shopPeer.js
+    - utils.js
+- name: Create deployment files for insurance web config
+  template:
+    src: "{{ playbook_dir }}/priconn/templates/insurance_web_www_blockchain/{{ item }}.j2"  
+    dest: "{{ fabricworkdir }}/insurance_config/{{ item }}" 
+  with_items:
+    - ibpConnection.json
+    - config.js
+    - config.json
+

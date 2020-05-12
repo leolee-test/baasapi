@@ -1,0 +1,13 @@
+---
+- name: Stop fabric insurance pod and services
+  command: >-
+    kubectl --kubeconfig kubeconfig delete -f {{ pjrun }}/{{ item }}
+  args:
+    chdir: "{{ playbook_dir }}/../../vars/"
+  with_items:
+    - "web-pod.yaml"
+    - "web-services.yaml"
+  ignore_errors: yes
+  tags: "fabricinsurancedown"
+
+

@@ -1,0 +1,22 @@
+# Hyperledger fabric services deployment file.
+#
+# Example usage: kubectl create -f <this_file>
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  labels:
+    k8s-app: fabricsdk{{ networkid }} 
+  name: fabricsdk{{ networkid }}
+  namespace: "{{ namespace }}"
+spec:
+  selector:
+    k8s-app: fabricsdk{{ networkid }}
+{% if fabric.k8s.exposesdkport %}
+  type: NodePort
+{% endif %}
+  ports:
+    - name: port1
+      port: {{ fabric.sdk_port }}
+      targetPort: {{ fabric.sdk_port }} 

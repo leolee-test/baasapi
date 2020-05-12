@@ -1,0 +1,70 @@
+{
+  "name": "testc1",
+  "description": "Network on baas v2",
+  "version": "1.0.0",
+  "client": {
+      "organization": "insurance"
+  },
+  "organizations": {
+{% for org in allorgs %}
+    "{{ org }}": {
+      "mspid": "{{ org }}",
+      "peers": [
+{% for peer in allpeers|selectattr('org', 'equalto', org)|list %}
+        "{{ peer.name }}"{{ '' if loop.last else ',' }}
+{% endfor %}
+      ],
+      "certificateAuthorities": [
+{% for ca in allcas|selectattr('org', 'equalto', org)|list %}
+        "{{ ca.name }}"{{ '' if loop.last else ',' }}
+{% endfor %}
+      ]
+    }{{ '' if loop.last else ',' }}
+{% endfor %}
+  },
+  "orderers": {
+{% for orderer in allorderers %}
+    "{{ orderer.name }}": {
+      "url": "grpcs://{{ orderer.name }}:7050",
+      "grpcOptions": {
+        "ssl-target-name-override": "{{ orderer.name }}"
+      },
+      "tlsCACerts": {
+{% for ordpemstr in ordtlscapems|selectattr('org', 'equalto', orderer.org)|list %}
+        "pem": "{{ ordpemstr.pem }}"
+{% endfor %}
+      }
+    }{{ '' if loop.last else ',' }}
+{% endfor %}
+  },
+  "peers": {
+{% for peer in allpeers %}
+    "{{ peer.name }}": {
+      "url": "grpcs://{{ peer.name }}:7051",
+      "eventUrl": "{{ peer.name }}:7053",
+      "grpcOptions": {
+        "ssl-target-name-override": "{{ peer.name }}"
+      },
+      "tlsCACerts": {
+{% for pemstr in tlscapems|selectattr('org', 'equalto', peer.org)|list %}
+        "pem": "{{ pemstr.pem }}"
+{% endfor %}
+      }
+    }{{ '' if loop.last else ',' }}
+{% endfor %}
+  },
+  "certificateAuthorities": {
+{% for ca in allcas|selectattr('org', 'equalto', 'insurance')|list %}
+    "{{ ca.name }}": {
+      "url": "https://{{ca.name}}:7054",
+      "caName": "{{ ca.name }}",
+      "httpOptions": {"verify": false},
+      "tlsCACerts": {
+{% for pemstr in tlscapems|selectattr('org', 'equalto', 'insurance')|list %}
+        "pem": "{{ pemstr.pem }}"
+{% endfor %}
+      }
+    }{{ '' if loop.last else ',' }}
+{% endfor %}
+  }
+}

@@ -1,0 +1,40 @@
+---
+#- name: Create deployment files for explorer and services 
+#  template:
+#    src: "{{ playbook_dir }}/../operate_k8s/services/templates/{{ item }}.j2"  
+#    dest: "{{ pjrun }}/{{ item }}.yaml"
+#  with_items:
+#    - explorer-db-pod
+#    - explorer-pod
+#    - explorer-db-services
+#    - explorer-services
+#    - marbles-pod
+#    - marbles-services
+#    - web-pod
+#    - web-services
+
+# Create the k8s services so that node addresses become available
+#- name: Create k8s service deployment files
+#  template:
+#    src: "{{ playbook_dir }}/../operate_k8s/services/templates/explorer-db-services.j2"
+#    dest: "{{ pjrun }}/explorer-db-services.yaml"
+
+# Create the k8s services so that node addresses become available
+#- name: Create k8s service deployment files
+#  template:
+#    src: "{{ playbook_dir }}/../operate_k8s/services/templates/explorer-services.j2"
+#    dest: "{{ pjrun }}/explorer-services.yaml"
+
+#- name: Start fabric sdk services
+#  command: >-
+#    kubectl --kubeconfig kubeconfig apply -f {{ pjrun }}/explorer-services.yaml
+#  args:
+#    chdir: "{{ playbook_dir }}/../../vars/"
+#  tags: "fabricexplorerup"
+
+#- name: Start fabric sdk pods
+#  command: "kubectl --kubeconfig kubeconfig apply -f {{ pjrun }}/explorer-pod.yaml"
+#  args:
+#    chdir: "{{ playbook_dir }}/../../vars/"
+#  tags: "fabricexplorerup"
+

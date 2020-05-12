@@ -1,0 +1,51 @@
+---
+#- debug:
+#    var: hostvars
+- name: Ensure certificate directory exists 
+  file:
+    path: "{{ fabricworkdir }}/keyfiles/channels"
+    state: "{{ item }}"
+  with_items:
+    - "directory"
+
+- include_tasks: "{{ playbook_dir }}/priconn/tasks/apply.yml"
+  when: fabric.k8s.exposeserviceport == false     
+
+- name: Copy channel files onto the persistent volume
+  command: >-
+    kubectl --kubeconfig kubeconfig --namespace {{ namespace }}
+    cp {{ item }} {{ sdk_pod.stdout }}:/fabric/keyfiles/
+  args:
+    chdir: "{{ playbook_dir }}/../../vars/"
+  with_items:
+    - "{{ fabricworkdir }}/keyfiles/connection.yml"
+  tags: "placechannelfiles"  
+
+- name: Copy channel files onto the persistent volume  org
+  command: >-
+    kubectl --kubeconfig kubeconfig --namespace {{ namespace }}   
+    cp {{ fabricworkdir }}/keyfiles/{{ item }}/connection.yml {{ sdk_pod.stdout }}:/fabric/keyfiles/{{ item }}/ 
+  args:
+    chdir: "{{ playbook_dir }}/../../vars/"
+  with_items: "{{ peerorgs }}" 
+
+#- name: Copy channel files onto the persistent volume  org for explorer
+#  command: >-
+#    kubectl --kubeconfig kubeconfig --namespace {{ namespace }}   
+#    cp {{ fabricworkdir }}/keyfiles/{{ item }}/connection-profile {{ sdk_pod.stdout }}:/fabric/
+#  args:
+#    chdir: "{{ playbook_dir }}/../../vars/"
+#  with_items: "{{ peerorgs }}" 
+#- name: Copy channel files onto the persistent volume  org for marbles
+#  command: >-
+#    kubectl --kubeconfig kubeconfig --namespace {{ namespace }}   
+#    cp {{ fabricworkdir }}/keyfiles/{{ item }}/marbles_config {{ sdk_pod.stdout }}:/fabric/
+#  args:
+#    chdir: "{{ playbook_dir }}/../../vars/"
+#  with_items: "{{ peerorgs }}" 
+#- name: Copy channel files onto the persistent volume  org for insurance web
+#  command: >-
+#    kubectl --kubeconfig kubeconfig --namespace {{ namespace }}   
+#    cp {{ fabricworkdir }}/insurance_config {{ sdk_pod.stdout }}:/fabric/
+#  args:
+#    chdir: "{{ playbook_dir }}/../../vars/"

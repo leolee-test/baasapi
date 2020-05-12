@@ -1,0 +1,10 @@
+---
+- name: get fabric crypto tool
+  hosts: cloud
+  connection: local
+  gather_facts: no
+  vars_files:
+    - "./../../vars/namespaces/{{ env }}/{{ env }}.input"
+  tasks:
+    - include_tasks: "init_parm/tasks/{{ mode }}.yml"
+  tags: "init_parm"

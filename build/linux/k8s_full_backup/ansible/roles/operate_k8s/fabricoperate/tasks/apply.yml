@@ -1,0 +1,14 @@
+---
+- name: Reuse common code
+  include_tasks: "{{ playbook_dir }}/../common/config_apply.yml"
+
+- name: Get sdk pod and add hosts
+  include_tasks: "{{ playbook_dir }}/fabricoperate/tasks/get_sdk_pod.yml"
+
+- include_tasks: "{{ playbook_dir }}/certsetup/tasks/apply.yml"
+  #hosts: '{{ sdk_pod.stdout }}'
+  when: fabric.generate_certs|default(true) == true
+
+- name: Create deployment files for sdk and services
+  include_tasks: "{{ playbook_dir }}/../operate_k8s/services/tasks/apply.yml"   
+

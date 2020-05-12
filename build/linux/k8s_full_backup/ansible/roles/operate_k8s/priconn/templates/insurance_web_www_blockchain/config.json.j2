@@ -1,0 +1,12 @@
+{
+  "connection_file": "ibpConnection.json",
+  "appAdmin": "admin",
+  "appAdminSecret": "adminpw",
+{% for ca in allcas|selectattr('org', 'equalto', 'insurance')|list %}
+  "orgMSPID": "insurance",
+  "caName": "https://{{ ca.name }}:7054",
+  "userName": "insuranceUser",
+{% endfor %}
+  "gatewayDiscovery": { "enabled": true, "asLocalhost": false }
+}
+
